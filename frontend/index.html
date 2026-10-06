@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceCraft — PDF to Audiobook Studio</title>
+    <meta name="description" content="Extract text from PDFs, detect chapters automatically, and generate natural-sounding MP3 audiobooks with neural TTS.">
+    
+    <!-- Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Background glowing ambient lights -->
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" y1="19" x2="12" y2="22" />
+                        <line x1="8" y1="22" x2="16" y2="22" />
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>VoiceCraft <span class="badge">STUDIO</span></h1>
+                    <p class="tagline">PDF to Neural Audiobook Converter</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <a href="/docs" target="_blank" class="nav-link" title="Open Swagger API Documentation">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    API Docs
+                </a>
+                <button id="themeToggleBtn" class="icon-btn" title="Toggle Theme" aria-label="Toggle Theme">
+                    <svg id="moonIcon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                    <svg id="sunIcon" class="hidden" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        
+        <!-- STEP 1: Upload Zone -->
+        <section class="card upload-card" id="uploadSection">
+            <div class="card-header">
+                <div class="step-indicator">1</div>
+                <div>
+                    <h2>Upload PDF Document</h2>
+                    <p class="section-desc">Select or drag & drop a PDF file (e-books, articles, reports, papers).</p>
+                </div>
+            </div>
+
+            <div class="dropzone" id="dropzone">
+                <input type="file" id="pdfFileInput" accept="application/pdf,.pdf" class="file-input-hidden" />
+                <div class="dropzone-content">
+                    <div class="drop-icon">
+                        <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.6" fill="none">
+                            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                            <path d="M12 12v9" />
+                            <path d="m8 16 4-4 4 4" />
+                        </svg>
+                    </div>
+                    <h3>Drag & Drop your PDF file here</h3>
+                    <p class="dropzone-hint">or browse from your computer</p>
+                    <button type="button" class="btn btn-secondary" id="browseFileBtn">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        Choose PDF File
+                    </button>
+                    <div class="file-spec-hint">Supports PDF documents up to 100 MB</div>
+                </div>
+                <div class="dropzone-uploading hidden" id="uploadingIndicator">
+                    <div class="spinner"></div>
+                    <p id="uploadingText">Validating & Uploading PDF...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 2: PDF Information & Text Preview -->
+        <section class="card file-info-card hidden" id="fileInfoSection">
+            <div class="card-header">
+                <div class="step-indicator">2</div>
+                <div>
+                    <h2>Document Overview & Text Preview</h2>
+                    <p class="section-desc">Verify extracted document information and inspect text content.</p>
+                </div>
+            </div>
+
+            <!-- Scanned PDF warning alert banner -->
+            <div class="alert alert-warning hidden" id="scannedAlert">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-body">
+                    <strong>Scanned Document Detected</strong>
+                    <p id="scannedAlertMsg">This PDF appears to contain scanned images rather than selectable text. OCR is required.</p>
+                </div>
+            </div>
+
+            <div class="doc-meta-grid">
+                <div class="meta-item">
+                    <span class="meta-label">File Name</span>
+                    <span class="meta-val" id="metaFilename">-</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Title</span>
+                    <span class="meta-val" id="metaTitle">-</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Total Pages</span>
+                    <span class="meta-val" id="metaPages">-</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">File Size</span>
+                    <span class="meta-val" id="metaSize">-</span>
+                </div>
+            </div>
+
+            <div class="preview-actions">
+                <button type="button" class="btn btn-outline" id="loadPreviewBtn">
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    Extract & Preview Text
+                </button>
+                <button type="button" class="btn btn-text" id="togglePreviewViewBtn" style="display:none;">
+                    Hide Preview
+                </button>
+            </div>
+
+            <!-- Collapsible Preview Box -->
+            <div class="preview-container hidden" id="previewContainer">
+                <div class="preview-header">
+                    <h4>Sample Extracted Content</h4>
+                    <span class="preview-badge" id="previewCharCount">0 characters</span>
+                </div>
+                <div class="preview-body">
+                    <pre id="previewTextContent">Loading extracted text sample...</pre>
+                </div>
+                <div class="preview-pages-breakdown" id="pagesBreakdown">
+                    <!-- Page snippets inserted dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 3: Voice & Audiobook Settings -->
+        <section class="card config-card hidden" id="configSection">
+            <div class="card-header">
+                <div class="step-indicator">3</div>
+                <div>
+                    <h2>Audiobook Synthesis Settings</h2>
+                    <p class="section-desc">Customize voice actor, language, speed, and chapter structure.</p>
+                </div>
+            </div>
+
+            <div class="config-grid">
+                <!-- Language Selector -->
+                <div class="form-group">
+                    <label for="languageSelect">
+                        <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                        Narrator Language
+                    </label>
+                    <select id="languageSelect" class="form-control">
+                        <option value="en" selected>English</option>
+                        <option value="hi">Hindi (हिंदी)</option>
+                        <option value="es">Spanish (Español)</option>
+                        <option value="fr">French (Français)</option>
+                        <option value="de">German (Deutsch)</option>
+                    </select>
+                </div>
+
+                <!-- Voice Selector -->
+                <div class="form-group">
+                    <label for="voiceSelect">
+                        <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                        Voice Model
+                    </label>
+                    <select id="voiceSelect" class="form-control">
+                        <!-- Populated dynamically via JS -->
+                    </select>
+                </div>
+
+                <!-- Speed Control -->
+                <div class="form-group speed-group">
+                    <div class="speed-header">
+                        <label for="speedSlider">
+                            <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            Narrator Speed: <strong id="speedValDisplay">1.0x</strong>
+                        </label>
+                    </div>
+                    <div class="slider-wrapper">
+                        <span class="speed-min">0.75x</span>
+                        <input type="range" id="speedSlider" min="0.75" max="2.0" step="0.05" value="1.0" class="speed-slider" />
+                        <span class="speed-max">2.0x</span>
+                    </div>
+                    <div class="speed-presets">
+                        <button type="button" class="preset-btn" data-speed="0.75">0.75x</button>
+                        <button type="button" class="preset-btn active" data-speed="1.0">1.0x</button>
+                        <button type="button" class="preset-btn" data-speed="1.25">1.25x</button>
+                        <button type="button" class="preset-btn" data-speed="1.5">1.5x</button>
+                        <button type="button" class="preset-btn" data-speed="2.0">2.0x</button>
+                    </div>
+                </div>
+
+                <!-- Format & Split Settings -->
+                <div class="form-group">
+                    <label>Audio Export Options</label>
+                    <div class="checkbox-wrapper">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="splitChaptersCheck" checked />
+                            <span class="checkmark"></span>
+                            <span class="checkbox-text">
+                                <strong>Generate individual chapter tracks</strong>
+                                <small>Separate MP3 files for each detected chapter/section</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="generate-action-box">
+                <button type="button" class="btn btn-primary btn-large" id="startGenerationBtn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    Generate Audiobook
+                </button>
+            </div>
+        </section>
+
+        <!-- STEP 4: Live Processing Progress -->
+        <section class="card progress-card hidden" id="progressSection">
+            <div class="card-header">
+                <div class="step-indicator pulsing">4</div>
+                <div>
+                    <h2>Synthesizing Audiobook</h2>
+                    <p class="section-desc" id="progressStatusHeader">Processing document chunks and generating speech...</p>
+                </div>
+            </div>
+
+            <div class="progress-box">
+                <div class="progress-info-row">
+                    <span class="status-badge" id="jobStatusBadge">processing</span>
+                    <span class="progress-percent" id="jobProgressPercent">0%</span>
+                </div>
+
+                <div class="progress-track">
+                    <div class="progress-fill" id="jobProgressBar" style="width: 0%;"></div>
+                </div>
+
+                <div class="progress-message-row">
+                    <div class="mini-spinner" id="progressSpinner"></div>
+                    <span class="progress-message" id="jobProgressMessage">Initializing conversion pipeline...</span>
+                </div>
+
+                <div class="pipeline-steps">
+                    <div class="pipe-step active" id="stepExtract">
+                        <span class="dot"></span>
+                        <span class="lbl">Extract</span>
+                    </div>
+                    <div class="pipe-step" id="stepProcess">
+                        <span class="dot"></span>
+                        <span class="lbl">Structure</span>
+                    </div>
+                    <div class="pipe-step" id="stepTTS">
+                        <span class="dot"></span>
+                        <span class="lbl">Neural Voice</span>
+                    </div>
+                    <div class="pipe-step" id="stepCombine">
+                        <span class="dot"></span>
+                        <span class="lbl">Mastering</span>
+                    </div>
+                    <div class="pipe-step" id="stepReady">
+                        <span class="dot"></span>
+                        <span class="lbl">Ready</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 5: Audiobook Player & Library -->
+        <section class="card player-card hidden" id="playerSection">
+            <div class="card-header">
+                <div class="step-indicator success-indicator">✓</div>
+                <div>
+                    <h2>Your Audiobook is Ready!</h2>
+                    <p class="section-desc">Listen directly in your browser or download individual chapters & complete MP3.</p>
+                </div>
+            </div>
+
+            <!-- Master Custom Audiobook Player -->
+            <div class="custom-player" id="customAudioPlayer">
+                <audio id="audioElement" preload="metadata"></audio>
+
+                <div class="player-top">
+                    <div class="player-track-info">
+                        <div class="audiobook-artwork">
+                            <svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" stroke-width="1.8" fill="none">
+                                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                            </svg>
+                        </div>
+                        <div class="track-details">
+                            <h3 id="playerBookTitle">Audiobook Title</h3>
+                            <p id="playerCurrentTrack">Full Audiobook</p>
+                        </div>
+                    </div>
+
+                    <!-- Visualizer Wave Bars -->
+                    <div class="visualizer" id="audioVisualizer">
+                        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                        <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+                        <span class="bar"></span><span class="bar"></span>
+                    </div>
+                </div>
+
+                <!-- Timeline / Progress Bar -->
+                <div class="timeline-container">
+                    <span class="time-label" id="currentTimeLabel">00:00</span>
+                    <div class="timeline-slider-wrap">
+                        <input type="range" id="seekSlider" class="seek-slider" min="0" max="100" value="0" step="0.1" />
+                    </div>
+                    <span class="time-label" id="totalDurationLabel">00:00</span>
+                </div>
+
+                <!-- Controls row -->
+                <div class="player-controls-row">
+                    <div class="controls-left">
+                        <!-- Volume & Mute -->
+                        <button type="button" class="player-btn" id="muteBtn" title="Mute/Unmute">
+                            <svg id="volumeIcon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                        </button>
+                        <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="1" class="volume-slider" title="Volume" />
+                    </div>
+
+                    <div class="controls-center">
+                        <button type="button" class="player-btn" id="prevTrackBtn" title="Previous Track/Chapter">
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+                        </button>
+                        <button type="button" class="player-btn" id="skipBack10Btn" title="Back 10 Seconds">
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M1 4v6h6"></path><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            <span class="skip-subtext">10</span>
+                        </button>
+                        <button type="button" class="player-btn play-main-btn" id="playPauseBtn" title="Play / Pause">
+                            <svg id="playIcon" viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            <svg id="pauseIcon" class="hidden" viewBox="0 0 24 24" width="26" height="26" stroke="currentColor" stroke-width="2" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                        </button>
+                        <button type="button" class="player-btn" id="skipFwd10Btn" title="Forward 10 Seconds">
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                            <span class="skip-subtext">10</span>
+                        </button>
+                        <button type="button" class="player-btn" id="nextTrackBtn" title="Next Track/Chapter">
+                            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+                        </button>
+                    </div>
+
+                    <div class="controls-right">
+                        <!-- Playback Speed -->
+                        <div class="playback-speed-select-wrap">
+                            <select id="playerPlaybackRateSelect" class="speed-select-control" title="Playback Speed">
+                                <option value="0.75">0.75x</option>
+                                <option value="1.0" selected>1.0x</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                                <option value="1.75">1.75x</option>
+                                <option value="2.0">2.0x</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chapter Selector Dropdown inside Player -->
+                <div class="player-chapter-select-bar">
+                    <label for="playerChapterSelect">Select Track / Chapter:</label>
+                    <select id="playerChapterSelect" class="form-control">
+                        <option value="full">Master Audiobook (Complete Book)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Download & Export Bar -->
+            <div class="export-actions-bar">
+                <a id="downloadMasterBtn" href="#" class="btn btn-primary" download>
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Download Full Audiobook (MP3)
+                </a>
+                <button type="button" class="btn btn-secondary" id="startNewBookBtn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Convert Another PDF
+                </button>
+            </div>
+
+            <!-- Individual Chapter List -->
+            <div class="chapters-table-container" id="chaptersContainer">
+                <div class="chapters-header">
+                    <h3>Chapters & Sections (<span id="chaptersCountBadge">0</span>)</h3>
+                    <p class="section-desc">Stream or download individual chapter tracks.</p>
+                </div>
+                <div class="chapters-list" id="chaptersList">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <p>Built with FastAPI, PyMuPDF & Neural Edge-TTS • Ready for Windows & Linux</p>
+    </footer>
+
+    <!-- Toast Alerts -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

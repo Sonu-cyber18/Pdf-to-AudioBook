@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.pyd
+
+# Environments
+.env.local
+venv/
+env/
+ENV/
+.venv/
+
+# Uploads, outputs and temp data
+uploads/*
+!uploads/.gitkeep
+outputs/*
+!outputs/.gitkeep
+temp/*
+!temp/.gitkeep
+
+# IDE and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Audio and generated artifacts
+*.mp3
+*.wav
+.env
+*.pdf
+.env
